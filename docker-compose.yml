@@ -1,0 +1,36 @@
+version: '3.9'
+
+services:
+  nestjs-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nestjs-app
+    environment:
+      - DB_HOST=pgsql_db
+      - DB_PORT=5432
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - DATABASE_URL=${DATABASE_URL}
+    ports:
+      - '8080:8080'
+    depends_on:
+      - pgsql_db
+
+  pgsql_db:
+    image: postgres:${POSTGRES_VERSION}
+    container_name: ${CONTAINER_NAME}
+    hostname: ${DB_HOSTNAME}
+    ports:
+      - '5432:5432'
+    restart: always
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - db_vol:/var/lib/postgresql/data
+
+volumes:
+  db_vol:

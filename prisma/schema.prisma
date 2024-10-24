@@ -1,0 +1,125 @@
+generator client {
+  provider = "prisma-client-js"
+  engineType = "binary"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            Int           @id @default(autoincrement())
+  uid           String        @unique
+  email         String        @unique
+  name          String        @default("")
+  stature       Float         @default(0)
+  weight        Float         @default(0)
+  age           Int           @default(0)
+  gender        Gender        @default(other)
+  trainingLevel TrainingLevel @default(one)    
+  status        UserStatus    @default(maintain)
+  dietMethod    DietMethod    @default(lowFat)
+  targetWeight  Float         @default(0)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  MealReport    MealReport[]
+  Food          Food[]
+}
+
+enum Gender {
+  man
+  woman
+  other
+}
+
+enum TrainingLevel {
+  one
+  two
+  three
+  four
+  five
+}
+
+enum UserStatus {
+  diet
+  maintain
+  bulkUp
+} 
+
+enum DietMethod {
+  lowFat
+  lowCarb
+}
+
+model Food {
+  id        String   @unique
+  name      String
+  image     String
+  kcal      Float
+  baseUnit  BaseUnit @default(single)
+  quantity  Float
+  protein   Float
+  carb      Float
+  fat       Float
+  category  Category @default(other)
+  note      String?
+  creatorID String
+  User      User?    @relation(fields: [creatorID], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum BaseUnit {
+  single
+  g
+}
+
+enum Category {
+  carb
+  meat
+  fish
+  vegetable
+  fruit
+  dairy
+  seasoning
+  customize
+  other
+}
+
+model MealReport {
+  id          String    @unique
+  meals       Meal[]
+  operatedAt  String
+  creatorID   String
+  User        User?     @relation(fields: [creatorID], references: [id])
+  memo        String?
+  templateFlg Boolean   @default(false)
+  archivedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  label       String    @default("morning")
+}
+
+// FIXME: typeで宣言したいがエラーが出るため、現状modelで定義している。
+// prisma-json-types-generatorを使ってtypeにする。特に検索を使うこともないので、tableとして持っておく必要はない
+model Meal {
+  id           String   @id
+  foodID       String
+  quantity     Int
+  MealReport   MealReport? @relation(fields: [mealReportID], references: [id])
+  mealReportID String?
+}
+
+model BodyReport {
+  id         String    @id
+  creatorID   String
+  User        User?     @relation(fields: [creatorID], references: [id])
+  operatedAt String
+  weight     Float?
+  bodyImage  String?
+  memo       String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  archivedAt DateTime?
+}
